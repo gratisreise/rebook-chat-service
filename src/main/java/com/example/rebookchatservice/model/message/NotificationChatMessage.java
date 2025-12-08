@@ -21,4 +21,6 @@ public class NotificationChatMessage implements Serializable {
         this.userId = request.getReceiverId();
         this.roomId = request.getRoomId().toString();
     }
+
+
 }

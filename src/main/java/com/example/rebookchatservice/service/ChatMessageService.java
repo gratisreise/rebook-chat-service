@@ -4,9 +4,13 @@ import com.example.rebookchatservice.common.PageResponse;
 import com.example.rebookchatservice.model.ChatMessageRequest;
 import com.example.rebookchatservice.model.ChatMessageResponse;
 import com.example.rebookchatservice.model.entity.ChatMessage;
+import com.example.rebookchatservice.model.entity.Outbox;
 import com.example.rebookchatservice.model.message.NotificationChatMessage;
 import com.example.rebookchatservice.repository.ChatMessageRepository;
+import com.example.rebookchatservice.repository.OutBoxRepository;
 import com.example.rebookchatservice.utils.NotificationPublisher;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +29,8 @@ public class ChatMessageService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatReadStatusService chatReadStatusService;
     private final NotificationPublisher notificationPublisher;
+    private final ObjectMapper objectMapper;
+    private final OutBoxRepository outBoxRepository;
 
     public void enterEvent(ChatMessageRequest request) {
         // 입장
@@ -41,15 +47,15 @@ public class ChatMessageService {
     }
 
     @Transactional
-    public void receiveMessage(ChatMessageRequest request) {
+    public void receiveMessage(ChatMessageRequest request) throws JsonProcessingException {
         log.info("request received: {}", request.toString());
-        // 1. 메시지 저장 (DB, MongoDB 등)
-        saveMessage(request);
 
-        // 2. rabbitmq 메세지 발행
-        String message = "새로운 채팅이 도착했습니다.";
-        NotificationChatMessage notificationChatMessage = new NotificationChatMessage(request, message);
-        notificationPublisher.sendNotification(notificationChatMessage);
+        //채팅 내용 저장
+        ChatMessage chatMessage = new ChatMessage(request);
+        chatMessageRepository.save(chatMessage);
+
+        // 2. out box table 저장
+        saveOutBox(request);
 
         // 3. 해당 채팅방 구독자들에게 메시지 전송
         String destination = "/topic/room/" + request.getRoomId();
@@ -57,10 +63,13 @@ public class ChatMessageService {
         messagingTemplate.convertAndSend(destination, request);
     }
 
-
-    private void saveMessage(ChatMessageRequest request) {
-        ChatMessage chatMessage = new ChatMessage(request);
-        chatMessageRepository.save(chatMessage);
+    private void saveOutBox(ChatMessageRequest request) throws JsonProcessingException {
+        String message = "새로운 채팅이 도착했습니다.";
+        NotificationChatMessage notificationChatMessage = new NotificationChatMessage(request, message);
+        String payload = objectMapper.writeValueAsString(notificationChatMessage);
+        Outbox outBox = new Outbox();
+        outBox.setPayload(payload);
+        outBoxRepository.save(outBox);
     }
 
     public void leaveMessage(ChatMessageRequest request) {
