@@ -39,7 +39,7 @@ public class NotificationPublisher {
         for (Outbox event : pendingEvents) {
             try {
                 NotificationChatMessage message = objectMapper.readValue(event.getPayload(), NotificationChatMessage.class);
-                rabbitTemplate.convertAndSend(exchange, routingKey, event.getPayload());
+                rabbitTemplate.convertAndSend(exchange, routingKey, message);
 
                 event.setStatus(MessageStatus.PROCESSED);
                 event.setProcessedAt(LocalDateTime.now());

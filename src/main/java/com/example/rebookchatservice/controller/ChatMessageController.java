@@ -6,6 +6,7 @@ import com.example.rebookchatservice.common.SingleResult;
 import com.example.rebookchatservice.model.ChatMessageRequest;
 import com.example.rebookchatservice.model.ChatMessageResponse;
 import com.example.rebookchatservice.service.ChatMessageService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class ChatMessageController {
 
     // 메시지 수신 및 저장, 브로드캐스트
     @MessageMapping("/api/chats/message")
-    public void receiveMessage(@Valid ChatMessageRequest request) {
+    public void receiveMessage(@Valid ChatMessageRequest request) throws JsonProcessingException {
         chatMessageService.receiveMessage(request);
     }
 
