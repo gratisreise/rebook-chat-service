@@ -5,9 +5,11 @@ import com.example.rebookchatservice.model.ChatMessageRequest;
 import com.example.rebookchatservice.model.ChatMessageResponse;
 import com.example.rebookchatservice.model.entity.ChatMessage;
 import com.example.rebookchatservice.model.entity.Outbox;
+import com.example.rebookchatservice.model.entity.OutboxMessage;
 import com.example.rebookchatservice.model.message.NotificationChatMessage;
 import com.example.rebookchatservice.repository.ChatMessageRepository;
 import com.example.rebookchatservice.repository.OutBoxRepository;
+import com.example.rebookchatservice.repository.OutboxMessageRepository;
 import com.example.rebookchatservice.utils.NotificationPublisher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +33,7 @@ public class ChatMessageService {
     private final NotificationPublisher notificationPublisher;
     private final ObjectMapper objectMapper;
     private final OutBoxRepository outBoxRepository;
+    private final OutboxMessageRepository outboxMessageRepository;
 
     public void enterEvent(ChatMessageRequest request) {
         // 입장
@@ -48,28 +51,10 @@ public class ChatMessageService {
 
     @Transactional
     public void receiveMessage(ChatMessageRequest request) throws JsonProcessingException {
-        log.info("request received: {}", request.toString());
-
-        //채팅 내용 저장
-        ChatMessage chatMessage = new ChatMessage(request);
-        chatMessageRepository.save(chatMessage);
-
-        // 2. out box table 저장
-        saveOutBox(request);
-
-        // 3. 해당 채팅방 구독자들에게 메시지 전송
-        String destination = "/topic/room/" + request.getRoomId();
-        log.info("destination: {}", destination);
-        messagingTemplate.convertAndSend(destination, request);
-    }
-
-    private void saveOutBox(ChatMessageRequest request) throws JsonProcessingException {
-        String message = "새로운 채팅이 도착했습니다.";
-        NotificationChatMessage notificationChatMessage = new NotificationChatMessage(request, message);
-        String payload = objectMapper.writeValueAsString(notificationChatMessage);
-        Outbox outBox = new Outbox();
-        outBox.setPayload(payload);
-        outBoxRepository.save(outBox);
+        OutboxMessage out = new OutboxMessage();
+        out.setRoutingKey(request.getRoomId().toString()); // routing key for AMQP
+        out.setPayload(objectMapper.writeValueAsString(request));
+        outboxMessageRepository.save(out);
     }
 
     public void leaveMessage(ChatMessageRequest request) {
@@ -94,5 +79,11 @@ public class ChatMessageService {
         log.info("last read: {}", lastRead);
         //해당 날짜 이후 메세지 숫자 반환
         return chatMessageRepository.countByRoomIdAndSendAtAfter(roomId, lastRead);
+    }
+
+    @Transactional
+    public void saveChatMessage(ChatMessageRequest request){
+        ChatMessage chatMessage = new ChatMessage(request);
+        chatMessageRepository.save(chatMessage);
     }
 }

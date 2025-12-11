@@ -1,6 +1,7 @@
 package com.example.rebookchatservice.model.message;
 
 import com.example.rebookchatservice.model.ChatMessageRequest;
+import com.example.rebookchatservice.model.entity.ChatMessage;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,5 @@ public class NotificationChatMessage implements Serializable {
         this.userId = request.getReceiverId();
         this.roomId = request.getRoomId().toString();
     }
-
 
 }
