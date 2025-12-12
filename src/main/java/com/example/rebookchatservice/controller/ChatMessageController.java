@@ -5,7 +5,6 @@ import com.example.rebookchatservice.common.ResponseService;
 import com.example.rebookchatservice.common.SingleResult;
 import com.example.rebookchatservice.model.ChatMessageRequest;
 import com.example.rebookchatservice.model.ChatMessageResponse;
-import com.example.rebookchatservice.model.entity.OutboxMessage;
 import com.example.rebookchatservice.service.ChatMessageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;

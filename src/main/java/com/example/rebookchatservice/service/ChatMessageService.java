@@ -4,9 +4,7 @@ import com.example.rebookchatservice.common.PageResponse;
 import com.example.rebookchatservice.model.ChatMessageRequest;
 import com.example.rebookchatservice.model.ChatMessageResponse;
 import com.example.rebookchatservice.model.entity.ChatMessage;
-import com.example.rebookchatservice.model.entity.Outbox;
 import com.example.rebookchatservice.model.entity.OutboxMessage;
-import com.example.rebookchatservice.model.message.NotificationChatMessage;
 import com.example.rebookchatservice.repository.ChatMessageRepository;
 import com.example.rebookchatservice.repository.OutBoxRepository;
 import com.example.rebookchatservice.repository.OutboxMessageRepository;
@@ -66,7 +64,7 @@ public class ChatMessageService {
         messagingTemplate.convertAndSend("/topic/room/" + request.getRoomId(), request);
     }
 
-    //마지막으로 읽은날짜 갱신
+    //최근 메세지 조회
     public PageResponse<ChatMessageResponse> getRecentMessage(Long roomId, Pageable pageable) {
         Page<ChatMessage> messages = chatMessageRepository.findByRoomId(roomId, pageable);
         Page<ChatMessageResponse> responses = messages.map(ChatMessageResponse::new);

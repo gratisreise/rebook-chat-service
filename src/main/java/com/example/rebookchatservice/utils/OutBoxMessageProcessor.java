@@ -2,11 +2,9 @@ package com.example.rebookchatservice.utils;
 
 import com.example.rebookchatservice.exception.CMissingDataException;
 import com.example.rebookchatservice.model.ChatMessageRequest;
-import com.example.rebookchatservice.model.entity.ChatMessage;
 import com.example.rebookchatservice.model.entity.Outbox;
 import com.example.rebookchatservice.model.entity.OutboxMessage;
 import com.example.rebookchatservice.model.message.NotificationChatMessage;
-import com.example.rebookchatservice.repository.ChatMessageRepository;
 import com.example.rebookchatservice.repository.OutBoxRepository;
 import com.example.rebookchatservice.repository.OutboxMessageRepository;
 import com.example.rebookchatservice.service.ChatMessageService;
