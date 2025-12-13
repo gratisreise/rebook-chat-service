@@ -6,9 +6,7 @@ import com.example.rebookchatservice.model.ChatMessageResponse;
 import com.example.rebookchatservice.model.entity.ChatMessage;
 import com.example.rebookchatservice.model.entity.OutboxMessage;
 import com.example.rebookchatservice.repository.ChatMessageRepository;
-import com.example.rebookchatservice.repository.OutBoxRepository;
 import com.example.rebookchatservice.repository.OutboxMessageRepository;
-import com.example.rebookchatservice.utils.NotificationPublisher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
@@ -28,9 +26,7 @@ public class ChatMessageService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatReadStatusService chatReadStatusService;
-    private final NotificationPublisher notificationPublisher;
     private final ObjectMapper objectMapper;
-    private final OutBoxRepository outBoxRepository;
     private final OutboxMessageRepository outboxMessageRepository;
 
     public void enterEvent(ChatMessageRequest request) {
@@ -49,6 +45,10 @@ public class ChatMessageService {
 
     @Transactional
     public void receiveMessage(ChatMessageRequest request) throws JsonProcessingException {
+        //채팅내용저장 => 채팅내용이 이제 안전
+        saveChatMessage(request);
+
+        // outbox에 채팅전송내용 저장
         OutboxMessage out = new OutboxMessage();
         out.setRoutingKey(request.getRoomId().toString()); // routing key for AMQP
         out.setPayload(objectMapper.writeValueAsString(request));
@@ -79,8 +79,7 @@ public class ChatMessageService {
         return chatMessageRepository.countByRoomIdAndSendAtAfter(roomId, lastRead);
     }
 
-    @Transactional
-    public void saveChatMessage(ChatMessageRequest request){
+    private void saveChatMessage(ChatMessageRequest request){
         ChatMessage chatMessage = new ChatMessage(request);
         chatMessageRepository.save(chatMessage);
     }

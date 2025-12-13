@@ -42,9 +42,6 @@ public class OutBoxMessageProcessor {
                 o.setProcessed();
                 outboxMessageRepository.save(o);
 
-                //채팅내용저장 => 채팅내용이 이제 안전
-                chatMessageService.saveChatMessage(request);
-
                 //알림 아웃박스 저장
                 saveOutBox(request);
             } catch (Exception ex) {
