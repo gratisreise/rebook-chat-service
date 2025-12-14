@@ -48,9 +48,10 @@ public class ChatMessageService {
         //채팅내용저장 => 채팅내용이 이제 안전
         saveChatMessage(request);
 
+        String prefix = "/topic/room";
         // outbox에 채팅전송내용 저장
         OutboxMessage out = new OutboxMessage();
-        out.setRoutingKey(request.getRoomId().toString()); // routing key for AMQP
+        out.setRoutingKey(prefix + request.getRoomId()); // routing key for AMQP
         out.setPayload(objectMapper.writeValueAsString(request));
         outboxMessageRepository.save(out);
     }

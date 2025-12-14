@@ -36,7 +36,7 @@ public class OutBoxMessageProcessor {
             try {
                 // 발행
                 ChatMessageRequest request = objectMapper.readValue(o.getPayload(), ChatMessageRequest.class);
-                rabbitTemplate.convertAndSend("chat.message.exchange", o.getRoutingKey(), request);
+                rabbitTemplate.convertAndSend(o.getRoutingKey(), request);
 
                 // 발행 성공 표시
                 o.setProcessed();
