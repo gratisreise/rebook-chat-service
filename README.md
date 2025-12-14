@@ -191,9 +191,9 @@ WebSocket/STOMP 기반 실시간 메시징과 알림 발행을 담당하는 핵�
     │  Redis   │  MongoDB        │  Prometheus   │
     └─────────────────────────────────────────────┘
 ```
-
-
-### 5.3 실시간 메시징 플로우
+### 5.3 RabbitMQ STOMP 아키텍처
+![STOMP](https://rebook-bucket.s3.ap-northeast-2.amazonaws.com/rebook/rabbitmq_stomp.png)
+### 5.3 실시간 채팅 흐름
 
 ![메세지플로우](https://rebook-bucket.s3.ap-northeast-2.amazonaws.com/rebook/chatflow.png)
 
