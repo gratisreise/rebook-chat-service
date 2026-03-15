@@ -1,13 +1,13 @@
 package com.example.rebookchatservice.utils;
 
 import com.example.rebookchatservice.global.exception.CMissingDataException;
-import com.example.rebookchatservice.domain.chat.dto.ChatMessageRequest;
-import com.example.rebookchatservice.domain.chat.entity.Outbox;
-import com.example.rebookchatservice.domain.chat.entity.OutboxMessage;
-import com.example.rebookchatservice.domain.chat.dto.NotificationChatMessage;
-import com.example.rebookchatservice.domain.chat.repository.OutBoxRepository;
-import com.example.rebookchatservice.domain.chat.repository.OutboxMessageRepository;
-import com.example.rebookchatservice.domain.chat.service.ChatMessageService;
+import com.example.rebookchatservice.domain.dto.request.ChatMessageRequest;
+import com.example.rebookchatservice.domain.entity.Outbox;
+import com.example.rebookchatservice.domain.entity.OutboxMessage;
+import com.example.rebookchatservice.domain.dto.NotificationChatMessage;
+import com.example.rebookchatservice.domain.repository.OutBoxRepository;
+import com.example.rebookchatservice.domain.repository.OutboxMessageRepository;
+import com.example.rebookchatservice.domain.service.ChatMessageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
