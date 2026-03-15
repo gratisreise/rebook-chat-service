@@ -1,13 +1,13 @@
 package com.example.rebookchatservice.utils;
 
-import com.example.rebookchatservice.exception.CMissingDataException;
-import com.example.rebookchatservice.model.ChatMessageRequest;
-import com.example.rebookchatservice.model.entity.Outbox;
-import com.example.rebookchatservice.model.entity.OutboxMessage;
-import com.example.rebookchatservice.model.message.NotificationChatMessage;
-import com.example.rebookchatservice.repository.OutBoxRepository;
-import com.example.rebookchatservice.repository.OutboxMessageRepository;
-import com.example.rebookchatservice.service.ChatMessageService;
+import com.example.rebookchatservice.global.exception.CMissingDataException;
+import com.example.rebookchatservice.domain.chat.dto.ChatMessageRequest;
+import com.example.rebookchatservice.domain.chat.entity.Outbox;
+import com.example.rebookchatservice.domain.chat.entity.OutboxMessage;
+import com.example.rebookchatservice.domain.chat.dto.NotificationChatMessage;
+import com.example.rebookchatservice.domain.chat.repository.OutBoxRepository;
+import com.example.rebookchatservice.domain.chat.repository.OutboxMessageRepository;
+import com.example.rebookchatservice.domain.chat.service.ChatMessageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -34,15 +34,12 @@ public class OutBoxMessageProcessor {
         List<OutboxMessage> list = outboxMessageRepository.findTop200ByStatusOrderByCreatedAtAsc("PENDING");
         for (OutboxMessage o : list) {
             try {
-                // 발행
                 ChatMessageRequest request = objectMapper.readValue(o.getPayload(), ChatMessageRequest.class);
                 rabbitTemplate.convertAndSend(o.getRoutingKey(), request);
 
-                // 발행 성공 표시
                 o.setProcessed();
                 outboxMessageRepository.save(o);
 
-                //알림 아웃박스 저장
                 saveOutBox(request);
             } catch (Exception ex) {
                 throw new CMissingDataException("메세지가 제대로 발행되지 못했습니다.");

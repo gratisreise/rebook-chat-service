@@ -1,9 +1,9 @@
 package com.example.rebookchatservice.utils;
 
-import com.example.rebookchatservice.enums.MessageStatus;
-import com.example.rebookchatservice.model.entity.Outbox;
-import com.example.rebookchatservice.model.message.NotificationChatMessage;
-import com.example.rebookchatservice.repository.OutBoxRepository;
+import com.example.rebookchatservice.global.enums.MessageStatus;
+import com.example.rebookchatservice.domain.chat.entity.Outbox;
+import com.example.rebookchatservice.domain.chat.dto.NotificationChatMessage;
+import com.example.rebookchatservice.domain.chat.repository.OutBoxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,7 +29,7 @@ public class NotificationPublisher {
     @Value("${notification.routing-key}")
     private String routingKey;
 
-    @Scheduled(fixedDelay = 2000) // 2초마다 실행
+    @Scheduled(fixedDelay = 2000)
     public void processOutbox() {
 
         List<Outbox> pendingEvents =
@@ -45,7 +45,6 @@ public class NotificationPublisher {
                 outboxRepository.save(event);
 
             } catch (Exception e) {
-                // 실패 시 상태만 FAILED 로 변경 (DLQ 와 함께 사용 가능)
                 event.setStatus(MessageStatus.FAILED);
                 outboxRepository.save(event);
             }

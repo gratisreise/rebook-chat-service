@@ -6,7 +6,7 @@ plugins {
     id 'jacoco'
 }
 
-group = 'com.char-service' // 프로젝트 그룹(패키지 네임)
+group = 'com.char' // 프로젝트 그룹(패키지 네임)
 version = '0.0.1' // 프로젝트 버전
 
 java {
