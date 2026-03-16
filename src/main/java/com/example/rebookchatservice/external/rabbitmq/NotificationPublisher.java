@@ -1,11 +1,9 @@
 package com.example.rebookchatservice.external.rabbitmq;
 
 import com.example.rebookchatservice.common.enums.MessageStatus;
-import com.example.rebookchatservice.domain.entity.Outbox;
-import com.example.rebookchatservice.domain.dto.NotificationChatMessage;
-import com.example.rebookchatservice.domain.repository.OutBoxRepository;
+import com.example.rebookchatservice.domain.outbox.Outbox;
+import com.example.rebookchatservice.domain.outbox.OutBoxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,13 +38,11 @@ public class NotificationPublisher {
                 NotificationChatMessage message = objectMapper.readValue(event.getPayload(), NotificationChatMessage.class);
                 rabbitTemplate.convertAndSend(exchange, routingKey, message);
 
-                event.setStatus(MessageStatus.PROCESSED);
-                event.setProcessedAt(LocalDateTime.now());
+                event.setProcessed();
                 outboxRepository.save(event);
 
             } catch (Exception e) {
-                event.setStatus(MessageStatus.FAILED);
-                outboxRepository.save(event);
+                log.error("Failed to process outbox event", e);
             }
         }
     }
