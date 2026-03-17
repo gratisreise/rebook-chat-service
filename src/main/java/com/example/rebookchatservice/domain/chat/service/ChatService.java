@@ -1,8 +1,8 @@
 package com.example.rebookchatservice.domain.chat.service;
 
+import com.example.rebookchatservice.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.rebook.common.core.response.PageResponse;
 import com.example.rebookchatservice.domain.chat.dto.request.ChatMessageRequest;
-import com.example.rebookchatservice.domain.chat.dto.request.ChatRoomRequest;
 import com.example.rebookchatservice.domain.chat.dto.response.ChatMessageResponse;
 import com.example.rebookchatservice.domain.chat.dto.response.ChatRoomResponse;
 import com.example.rebookchatservice.domain.chat.service.reader.ChatMessageReader;
@@ -25,8 +25,8 @@ public class ChatService {
 
     // ========== Chat Room ==========
 
-    public Long createChatRoom(String myId, ChatRoomRequest request) {
-        return chatRoomWriter.createChatRoom(myId, request);
+    public Long createChatRoom(ChatRoomCreateRequest request) {
+        return chatRoomWriter.createChatRoom(request);
     }
 
     public PageResponse<ChatRoomResponse> getMyChatRooms(String myId, Pageable pageable) {

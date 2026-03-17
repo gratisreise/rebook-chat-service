@@ -50,4 +50,5 @@ public class ChatRoom {
         }
         this.tradingId = tradingId;
     }
+
 }

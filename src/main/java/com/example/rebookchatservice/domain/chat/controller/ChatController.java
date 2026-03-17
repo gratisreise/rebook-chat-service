@@ -1,5 +1,6 @@
 package com.example.rebookchatservice.domain.chat.controller;
 
+import com.example.rebookchatservice.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.rebookchatservice.domain.chat.dto.request.ChatRoomRequest;
 import com.example.rebookchatservice.domain.chat.dto.response.ChatMessageResponse;
 import com.example.rebookchatservice.domain.chat.dto.response.ChatRoomResponse;
@@ -8,6 +9,7 @@ import com.rebook.common.auth.PassportProto.Passport;
 import com.rebook.common.auth.PassportUser;
 import com.rebook.common.core.response.PageResponse;
 import com.rebook.common.core.response.SuccessResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -36,18 +38,16 @@ public class ChatController {
         return passport.toString();
     }
 
+    //수정필요 그냥 이상함
     @PostMapping("/{yourId}")
     public ResponseEntity<SuccessResponse<Long>> createChatRoom(
-        @RequestHeader("X-User-Id") String myId,
-        @PathVariable String yourId,
-        @RequestBody ChatRoomRequest request) {
-        ChatRoomRequest roomRequest = ChatRoomRequest.of(yourId, request.tradingId());
-        return SuccessResponse.toCreated(chatService.createChatRoom(myId, roomRequest));
+        @RequestBody @Valid ChatRoomCreateRequest request) {
+        return SuccessResponse.toCreated(chatService.createChatRoom(request));
     }
 
     @GetMapping
     public ResponseEntity<SuccessResponse<PageResponse<ChatRoomResponse>>> getMyChatRooms(
-        @RequestHeader("X-User-Id") String myId,
+        @PassportUser String myId,
         @PageableDefault Pageable pageable) {
         return SuccessResponse.toOk(chatService.getMyChatRooms(myId, pageable));
     }

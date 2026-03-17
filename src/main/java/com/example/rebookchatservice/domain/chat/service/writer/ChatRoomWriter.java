@@ -1,7 +1,7 @@
 package com.example.rebookchatservice.domain.chat.service.writer;
 
 import com.example.rebookchatservice.common.exception.ChatException;
-import com.example.rebookchatservice.domain.chat.dto.request.ChatRoomRequest;
+import com.example.rebookchatservice.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.rebookchatservice.domain.chat.entity.ChatRoom;
 import com.example.rebookchatservice.domain.chat.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,29 +16,39 @@ public class ChatRoomWriter {
     private final ChatReadStatusWriter chatReadStatusWriter;
 
     @Transactional
-    public Long createChatRoom(String myId, ChatRoomRequest request) {
-        String yourId = request.yourId();
-        if (yourId.equals(myId)) {
+    public Long createChatRoom(ChatRoomCreateRequest request) {
+        String user1Id = request.user1Id();
+        String user2Id = request.user2Id();
+
+        // 사전순 정렬
+        if (user1Id.compareTo(user2Id) > 0) {
+            String temp = user1Id;
+            user1Id = user2Id;
+            user2Id = temp;
+        }
+
+        //검증
+        validateRoom(user1Id, user2Id);
+
+        ChatRoom chatRoom = ChatRoom.builder()
+            .user1Id(user1Id)
+            .user2Id(user2Id)
+            .tradingId(request.tradingId())
+            .build();
+        ChatRoom savedRoom = chatRoomRepository.save(chatRoom);
+        chatReadStatusWriter.createChatReadStatus(user1Id, user2Id, savedRoom.getId());
+        return savedRoom.getId();
+    }
+
+    private void validateRoom(String user1Id, String user2Id) {
+        if(isRoomExists(user1Id, user2Id)){
             throw ChatException.duplicatedChatRoom();
         }
-        if (isRoomExists(myId, yourId)) {
-            return getExistingRoomId(myId, yourId);
-        }
-        ChatRoom chatRoom = chatRoomRepository.save(request.toEntity(myId));
-        chatReadStatusWriter.createChatReadStatus(myId, yourId, chatRoom.getId());
-        return chatRoom.getId();
+
     }
 
-    private boolean isRoomExists(String myId, String yourId) {
-        return (myId.compareTo(yourId) < 0) ?
-            chatRoomRepository.existsByUser1IdAndUser2Id(myId, yourId) :
-            chatRoomRepository.existsByUser1IdAndUser2Id(yourId, myId);
+    private boolean isRoomExists(String user1Id, String user2Id) {
+        return chatRoomRepository.existsByUser1IdAndUser2Id(user1Id, user2Id);
     }
 
-    private Long getExistingRoomId(String myId, String yourId) {
-        ChatRoom existingRoom = (myId.compareTo(yourId) < 0) ?
-            chatRoomRepository.findByUser1IdAndUser2Id(myId, yourId) :
-            chatRoomRepository.findByUser1IdAndUser2Id(yourId, myId);
-        return existingRoom.getId();
-    }
 }
