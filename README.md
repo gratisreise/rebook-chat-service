@@ -1,245 +1,112 @@
 # Rebook Chat Service
 
-<div align="center">
+[![Java 17](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.13-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Gradle](https://img.shields.io/badge/Gradle-8.x-blue.svg)](https://gradle.org/)
 
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.13-brightgreen)
-![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2023.0.5-blue)
-![Java](https://img.shields.io/badge/Java-17-orange)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791)
-![MongoDB](https://img.shields.io/badge/MongoDB-5.x-47A248)
-![Redis](https://img.shields.io/badge/Redis-6+-DC382D)
-![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.x-FF6600)
-![Gradle](https://img.shields.io/badge/Gradle-8.14.2-02303A)
+중고 도서 거래 플랫폼 **Rebook**의 실시간 채팅 마이크로서비스입니다. WebSocket/STOMP 기반으로 1:1 채팅방 관리, 메시지 송수신, 읽음 상태 추적을 제공합니다.
 
-**Rebook 마이크로서비스 아키텍처의 실시간 채팅 서비스**
+## 아키텍처
 
-WebSocket/STOMP 기반 실시간 메시징과 알림 발행을 담당하는 핵심 백엔드 서비스
+- 채팅흐름
+![채팅](https://diagrams-noaahh.s3.ap-northeast-2.amazonaws.com/chat.png)
 
-</div>
+## 기능
 
----
+### 메시지 타입
 
-## 1. 개요
+| 타입 | 설명 | 트리거 |
+|------|------|--------|
+| ENTER | 채팅방 입장 알림 | 사용자가 채팅방에 입장할 때 |
+| CHAT | 일반 메시지 | 사용자가 메시지를 전송할 때 |
+| LEAVE | 채팅방 퇴장 알림 | 사용자가 채팅방에서 나갈 때 |
 
-**Rebook Chat Service**는 중고 도서 거래 플랫폼 Rebook의 실시간 채팅 마이크로서비스로, 사용자 간 실시간 메시징을 제공합니다. Spring Boot와 WebSocket/STOMP 프로토콜 기반으로 구현된 본 서비스는 **서비스 디스커버리**, **중앙화된 설정 관리**, **비동기 메시징**을 통한 확장 가능한 구조를 제공합니다.
+### 주요 기능
 
-
-### 서비스 역할
-
-본 서비스는 Rebook 플랫폼 내에서 다음과 같은 역할을 담당합니다:
-
-- **실시간 채팅**: WebSocket/STOMP 기반 양방향 실시간 메시징
-- **채팅방 관리**: 거래 기반 1:1 채팅방 생성 및 관리
-- **메시지 히스토리**: MongoDB 기반 채팅 메시지 영구 저장 및 조회
-- **읽음 상태 관리**: 사용자별 읽음 상태 추적 및 미확인 메시지 카운트
-- **알림 발행**: RabbitMQ를 통한 실시간 채팅 알림 전송
+- **1:1 채팅방**: 거래(tradingId) 기반으로 두 사용자 간 채팅방 생성, 동일 사용자 쌍은 중복 생성 불가
+- **실시간 메시징**: WebSocket/STOMP 프로토콜로 실시간 메시지 송수신
+- **읽음 상태 추적**: 채팅방별 사용자의 마지막 읽은 시간 기록, 안읽은 메시지 카운트 제공
+- **메시지 이력 조회**: 페이지네이션 기반으로 과거 메시지 조회
 
 ---
 
-## 2. 목차
-- [주요 기능](#3-주요-기능)
-- [기술 스택](#4-기술-스택)
-- [아키텍처](#5-아키텍처)
-- [API 문서](#6-api-문서)
-- [프로젝트 구조](#7-프로젝트-구조)
+## 기술 스택
+
+### Language & Framework
+- **Java 17**, **Spring Boot 3.3.13**, **Spring Cloud 2023.0.5**
+
+### Database
+- **PostgreSQL** — 채팅방, 읽음 상태 (JPA)
+- **MongoDB** — 채팅 메시지 (Spring Data MongoDB)
+- **Redis** — 세션 및 캐시
+
+### Messaging
+- **WebSocket/STOMP** — 실시간 채팅 (SockJS fallback)
+
+### Cloud & MSA
+- **Netflix Eureka** — 서비스 디스커버리
+- **Spring Cloud Config** — 중앙 설정 관리
+- **OpenFeign** — 서비스 간 HTTP 통신 (trade-service, user-service)
+
+### Monitoring & Docs
+- **Actuator**, **Prometheus**, **Sentry**
+- **SpringDoc OpenAPI** (Swagger UI)
+
+### Build & Deploy
+- **Gradle**, **Docker**
 
 ---
 
-## 3. 주요 기능
+## API 문서
 
-### 3.1 실시간 메시징
+Apidog에서 확인하실 수 있습니다:
 
-#### WebSocket 기반 양방향 통신
-- ✅ STOMP 프로토콜을 통한 메시지 라우팅
-- ✅ SockJS 폴백으로 브라우저 호환성 보장
-- ✅ `/ws-chat` 엔드포인트로 WebSocket 연결
-- ✅ 구독자 기반 메시지 브로드캐스팅
+```
+https://x6wq8qo61i.apidog.io/
+```
 
-#### 메시지 전송 및 수신
-- ✅ 실시간 채팅 메시지 전송 (`/app/api/chats/message`)
-- ✅ 채팅방별 메시지 구독 (`/topic/room/{roomId}`)
-- ✅ 사용자 입장/퇴장 이벤트 브로드캐스팅
-- ✅ MongoDB 기반 메시지 영구 저장
+### REST API
 
-#### 메시지 히스토리
-- ✅ 채팅 메시지 히스토리 조회 (페이지네이션 지원)
-- ✅ 최신순/오래된 순 정렬 옵션
-- ✅ 효율적인 인덱스 설계로 빠른 조회 성능
-- ✅ 문서형 데이터베이스(MongoDB) 활용
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| POST | `/api/chats/{yourId}` | 채팅방 생성 |
+| GET | `/api/chats` | 내 채팅방 목록 조회 (페이지네이션) |
+| GET | `/api/chats/messages/{roomId}` | 채팅 메시지 이력 조회 (페이지네이션) |
 
-### 3.2 채팅방 관리
+### WebSocket (STOMP)
 
-- ✅ 거래(trading) 기반 1:1 채팅방 자동 생성
-- ✅ 채팅방 중복 생성 방지 (동일 사용자 쌍 검증)
-- ✅ 채팅방 상세 정보 조회 (참여자, 거래 정보)
-- ✅ 사용자별 채팅방 목록 조회 (페이지네이션 지원)
-- ✅ 채팅방 삭제 (소유자 권한 검증)
+- **접속 엔드포인트**: `/ws-chat` (SockJS 지원)
+- **구독**: `/topic/room/{roomId}`
+- **발행**: `/app/...` (아래 핸들러 참고)
 
-### 3.3 읽음 상태 관리
-
-- ✅ 사용자별 마지막 읽은 시간 추적
-- ✅ 읽지 않은 메시지 수 실시간 계산
-- ✅ 읽음 상태 업데이트 API 제공
-- ✅ 복합키(room_id + user_id) 기반 효율적인 상태 관리
-- ✅ 채팅방별/전체 미확인 메시지 카운트 조회
-
-### 3.4 알림 시스템 (Event-Driven)
-
-- ✅ 새로운 메시지 수신 시 실시간 알림 발행
-- ✅ RabbitMQ 기반 비동기 메시징 (Notification Service 연동)
-- ✅ JSON 메시지 직렬화를 통한 안정적 메시지 전송
-- ✅ `chat.notification.queue` 큐를 통한 알림 전송
-
+| @MessageMapping | 설명 |
+|-----------------|------|
+| `/app/api/chats/enter` | 채팅방 입장 |
+| `/app/api/chats/message` | 메시지 전송 |
+| `/app/api/chats/chat/exit` | 채팅방 퇴장 |
 
 ---
 
-## 4. 기술 스택
-
-### 4.1 백엔드 프레임워크
-
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| **Spring Boot** | 3.3.13 | 애플리케이션 프레임워크 |
-| **Java** | 17 | 프로그래밍 언어 |
-| **Spring Data JPA** | - | ORM 및 데이터 접근 계층 (PostgreSQL) |
-| **Spring Data MongoDB** | - | MongoDB 데이터 접근 계층 |
-| **Spring Validation** | - | 요청 데이터 유효성 검증 |
-| **Lombok** | - | 보일러플레이트 코드 제거 |
-
-### 4.2 실시간 통신
-
-| 기술 | 용도 |
-|------|------|
-| **Spring WebSocket** | WebSocket 연결 관리 |
-| **STOMP** | 메시지 프로토콜 및 라우팅 |
-| **SockJS** | WebSocket 폴백 지원 |
-
-### 4.3 데이터베이스 & 캐싱
-
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| **PostgreSQL** | 14+ | 관계형 데이터베이스 (채팅방, 읽음 상태) |
-| **MongoDB** | 5.x | 문서형 데이터베이스 (채팅 메시지) |
-| **Redis** | 6+ | 분산 캐싱 및 세션 관리 |
-
-### 4.4 마이크로서비스 인프라 (Spring Cloud)
-
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| **Eureka Client** | 2023.0.5 | 서비스 디스커버리 및 등록 |
-| **Spring Cloud Config** | 2023.0.5 | 중앙화된 설정 관리 (외부 Config Server) |
-| **OpenFeign** | 2023.0.5 | 선언적 HTTP 클라이언트 (서비스 간 통신) |
-
-### 4.5 메시징 & 이벤트
-
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| **RabbitMQ (AMQP)** | 3.x | 비동기 메시징 및 이벤트 발행 |
-| **Spring AMQP** | - | RabbitMQ 통합 및 메시지 컨버터 |
-
-### 4.6 모니터링 & 로깅
-
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| **Spring Actuator** | - | 헬스체크 및 메트릭 엔드포인트 |
-| **Prometheus** | - | 메트릭 수집 및 모니터링 |
-| **Sentry** | 8.13.2 | 실시간 에러 트래킹 및 알림 |
-| **SLF4J & Logback** | - | 애플리케이션 로깅 |
-
-### 4.7 API 문서화
-
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| **SpringDoc OpenAPI 3** | 2.6.0 | Swagger UI 기반 REST API 문서 자동 생성 |
-
-### 4.8 빌드 & 배포
-
-| 기술 | 버전 | 용도 |
-|------|------|------|
-| **Gradle** | 8.14.2 | 빌드 자동화 도구 |
-| **Docker** | - | 컨테이너화 및 배포 |
-| **Jacoco** | - | 테스트 커버리지 분석 |
-| **JUnit 5** | - | 단위 테스트 프레임워크 |
-
----
-
-## 5. 다이어그램
-### 실시간 채팅 흐름
-
-![메세지플로우](https://rebook-bucket.s3.ap-northeast-2.amazonaws.com/rebook/chatflow.png)
-
-## 6. API 문서
-
-### 6.1 API 엔드포인트 상세
-
-#### 6.1.1 채팅방 관리 API (`ChatRoomController`)
-
-| Method | Endpoint | Summary |
-|--------|----------|---------|
-| **POST** | `/api/chats/room` | 채팅방 생성 |
-| **GET** | `/api/chats/room/{roomId}` | 채팅방 상세 조회 |
-| **GET** | `/api/chats/rooms` | 사용자의 채팅방 목록 조회 |
-| **DELETE** | `/api/chats/room/{roomId}` | 채팅방 삭제 |
-
-#### 6.1.2 메시지 관리 API (`ChatMessageController`)
-
-| Method | Endpoint | Summary |
-|--------|----------|---------|
-| **GET** | `/api/chats/messages/{roomId}` | 메시지 히스토리 조회 (페이징) |
-| **POST** | `/api/chats/message` | 메시지 전송 (REST) |
-
-#### 6.1.3 읽음 상태 API (`ChatReadStatusController`)
-
-| Method | Endpoint | Summary |
-|--------|----------|---------|
-| **PUT** | `/api/chats/read/{roomId}` | 읽음 상태 업데이트 |
-| **GET** | `/api/chats/unread/count` | 읽지 않은 메시지 수 조회 |
-
-### 6.2 WebSocket/STOMP 엔드포인트
-
-#### 연결
-```
-WebSocket Endpoint: /ws-chat
-SockJS Endpoint: /ws-chat (with fallback)
-```
-
-#### 구독 (Subscribe)
-```
-/topic/room/{roomId}                  # 특정 채팅방 메시지 수신
-```
-
-#### 발행 (Send)
-```
-/app/api/chats/message                # 메시지 전송
-/app/api/chats/enter                  # 채팅방 입장
-/app/api/chats/leave                  # 채팅방 퇴장
-```
-
-## 7. 프로젝트 구조
-
-### 구조
+## 프로젝트 구조
 
 ```
-rebook-chat-service/
-├── src/main/java/com/example/rebookchatservice/
-│   ├── advice/                    # 전역 예외 처리
-│   ├── common/                    # 공통 응답 모델
-│   ├── config/                    # WebSocket, RabbitMQ, Swagger 설정
-│   ├── controller/                # REST & WebSocket 컨트롤러
-│   ├── exception/                 # 커스텀 예외
-│   ├── model/
-│   │   ├── entity/               # JPA 엔티티 & MongoDB 문서
-│   │   └── (요청/응답 DTO)
-│   ├── repository/                # 데이터 접근 레이어
-│   ├── service/                   # 비즈니스 로직 (읽기/쓰기 분리)
-│   └── utils/                     # 알림 발행 유틸리티
-│
-├── src/main/resources/
-│   ├── application.yaml           # 기본 설정
-│   ├── application-dev.yaml       # 개발 환경
-│   └── application-prod.yaml      # 운영 환경
-│
-├── build.gradle
-├── Dockerfile
-└── README.md
+src/main/java/com/example/rebookchatservice/
+├── client/
+│   ├── trade/           # Feign Client (trade-service)
+│   └── user/            # Feign Client (user-service)
+├── common/
+│   ├── enums/           # MessageStatus 등 공통 열거형
+│   └── exception/       # 도메인 예외
+├── config/              # WebSocket, JPA 등 설정
+├── domain/chat/
+│   ├── controller/      # REST API + WebSocket 핸들러
+│   ├── dto/
+│   │   ├── request/     # ChatRoomCreateRequest, ChatMessageRequest
+│   │   └── response/    # ChatRoomResponse, ChatMessageResponse
+│   ├── entity/          # ChatRoom (JPA), ChatMessage (MongoDB), ChatReadStatus
+│   ├── repository/      # JPA & MongoDB Repository
+│   └── service/
+│       ├── reader/      # 조회 로직 (CQRS 패턴)
+│       └── writer/      # 명령 로직 (CQRS 패턴)
+└── external/            # 외부 시스템 연동
 ```

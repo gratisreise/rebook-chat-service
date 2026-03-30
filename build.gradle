@@ -3,6 +3,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version "${springBootVersion}"
     id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
+    id 'com.diffplug.spotless' version "${spotlessVersion}"
     id 'jacoco'
 }
 
@@ -53,9 +54,6 @@ dependencies {
     implementation 'io.sentry:sentry-spring-boot-starter-jakarta'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    // ====== 메시징 및 AMQP ======
-    implementation 'org.springframework.boot:spring-boot-starter-amqp'
-
     // ====== 클라우드/마이크로서비스 연동 ======
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
@@ -66,7 +64,6 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.amqp:spring-rabbit-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
