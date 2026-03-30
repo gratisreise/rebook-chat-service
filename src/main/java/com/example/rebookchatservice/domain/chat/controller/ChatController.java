@@ -38,7 +38,6 @@ public class ChatController {
         return passport.toString();
     }
 
-    //수정필요 그냥 이상함
     @PostMapping("/{yourId}")
     public ResponseEntity<SuccessResponse<Long>> createChatRoom(
         @RequestBody @Valid ChatRoomCreateRequest request) {
